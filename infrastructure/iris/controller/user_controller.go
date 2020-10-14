@@ -1,9 +1,8 @@
 package controller
 
 import (
-	"github.com/VulpesFerrilata/user/infrastructure/iris/request"
-	"github.com/VulpesFerrilata/user/infrastructure/iris/response"
 	"github.com/VulpesFerrilata/user/internal/usecase/interactor"
+	"github.com/VulpesFerrilata/user/internal/usecase/request"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 )
@@ -29,13 +28,13 @@ func (uc userController) PostRegister(ctx iris.Context) interface{} {
 		return err
 	}
 
-	userDTO, err := uc.userInteractor.Register(ctx.Request().Context(), registerRequest.ToInteractorRegisterForm())
+	userResponse, err := uc.userInteractor.Register(ctx.Request().Context(), registerRequest)
 	if err != nil {
 		return err
 	}
 
 	return mvc.Response{
 		Code:   iris.StatusCreated,
-		Object: response.NewUserResponse(userDTO),
+		Object: userResponse,
 	}
 }

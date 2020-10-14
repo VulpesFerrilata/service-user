@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/grpc/protoc/user"
-	"github.com/VulpesFerrilata/user/infrastructure/go-micro/viewmodel"
 	"github.com/VulpesFerrilata/user/internal/usecase/interactor"
+	"github.com/VulpesFerrilata/user/internal/usecase/request"
 )
 
 func NewUserHandler(userInteractor interactor.UserInteractor) user.UserHandler {
@@ -19,27 +19,30 @@ type userHandler struct {
 }
 
 func (uh userHandler) GetUserById(ctx context.Context, userRequestPb *user.UserRequest, userResponsePb *user.UserResponse) error {
-	userRequestVM := viewmodel.NewUserRequest(userRequestPb)
+	userRequest := new(request.UserRequest)
+	userRequest.ID = int(userRequestPb.GetID())
 
-	userDTO, err := uh.userInteractor.GetUserById(ctx, userRequestVM.ToUserForm())
+	userResponse, err := uh.userInteractor.GetUserById(ctx, userRequest)
 	if err != nil {
 		return err
 	}
 
-	userResponseVM := viewmodel.NewUserResponse(userResponsePb)
-	userResponseVM.FromUserDTO(userDTO)
+	userResponsePb.ID = int64(userResponse.ID)
+
 	return nil
 }
 
 func (uh userHandler) GetUserByCredential(ctx context.Context, credentialRequestPb *user.CredentialRequest, userResponsePb *user.UserResponse) error {
-	credentialRequestVM := viewmodel.NewCredentialRequest(credentialRequestPb)
+	credentialRequest := new(request.CredentialRequest)
+	credentialRequest.Username = credentialRequestPb.GetUsername()
+	credentialRequest.Password = credentialRequestPb.GetPassword()
 
-	userDTO, err := uh.userInteractor.GetUserByCredential(ctx, credentialRequestVM.ToLoginForm())
+	userResponse, err := uh.userInteractor.GetUserByCredential(ctx, credentialRequest)
 	if err != nil {
 		return err
 	}
 
-	userResponseVM := viewmodel.NewUserResponse(userResponsePb)
-	userResponseVM.FromUserDTO(userDTO)
+	userResponsePb.ID = int64(userResponse.ID)
+
 	return nil
 }

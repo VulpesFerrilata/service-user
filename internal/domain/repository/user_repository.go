@@ -13,13 +13,14 @@ import (
 
 type ReadOnlyUserRepository interface {
 	CountByUsername(ctx context.Context, username string) (int, error)
-	GetById(ctx context.Context, id uint) (*model.User, error)
+	GetById(ctx context.Context, id int) (*model.User, error)
 	GetByUsername(ctx context.Context, username string) (*model.User, error)
 	FindAll(context.Context) ([]*model.User, error)
 }
 
 type UserRepository interface {
 	ReadOnlyUserRepository
+
 	Insert(context.Context, *model.User) error
 }
 
@@ -35,11 +36,11 @@ type userRepository struct {
 
 func (ur userRepository) CountByUsername(ctx context.Context, username string) (int, error) {
 	var count int64
-	user := new(model.User)
-	return int(count), ur.dbContext.GetDB(ctx).Find(user, "username = ?", username).Count(&count).Error
+	users := make([]*model.User, 0)
+	return int(count), ur.dbContext.GetDB(ctx).Find(users, "user_name = ?", username).Count(&count).Error
 }
 
-func (ur userRepository) GetById(ctx context.Context, id uint) (*model.User, error) {
+func (ur userRepository) GetById(ctx context.Context, id int) (*model.User, error) {
 	user := new(model.User)
 	err := ur.dbContext.GetDB(ctx).First(user, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {

@@ -13,7 +13,6 @@ import (
 	"github.com/VulpesFerrilata/user/infrastructure/iris/server"
 	"github.com/VulpesFerrilata/user/internal/domain/repository"
 	"github.com/VulpesFerrilata/user/internal/domain/service"
-	"github.com/VulpesFerrilata/user/internal/usecase/adapter"
 	"github.com/VulpesFerrilata/user/internal/usecase/interactor"
 	"go.uber.org/dig"
 )
@@ -29,7 +28,6 @@ func NewContainer() *dig.Container {
 	container.Provide(repository.NewUserRepository)
 	container.Provide(service.NewUserService)
 	//--Usecase
-	container.Provide(adapter.NewUserAdapter)
 	container.Provide(interactor.NewUserInteractor)
 
 	//--Utility
