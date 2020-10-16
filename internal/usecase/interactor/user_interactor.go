@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/library/pkg/validator"
-	"github.com/VulpesFerrilata/user/internal/domain/model"
 	"github.com/VulpesFerrilata/user/internal/domain/service"
 	"github.com/VulpesFerrilata/user/internal/usecase/request"
 	"github.com/VulpesFerrilata/user/internal/usecase/response"
@@ -64,8 +63,7 @@ func (ui userInteractor) Register(ctx context.Context, registerRequest *request.
 		return nil, err
 	}
 
-	user := new(model.User)
-	user.Username = registerRequest.Username
+	user := registerRequest.ToUser()
 	if err := ui.userService.Create(ctx, user, registerRequest.Password); err != nil {
 		return nil, err
 	}

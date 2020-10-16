@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/user/internal/domain/model"
+	"github.com/VulpesFerrilata/user/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/user/internal/domain/repository"
 	"golang.org/x/crypto/bcrypt"
 
@@ -12,9 +12,9 @@ import (
 )
 
 type UserService interface {
-	GetUserRepository() repository.ReadOnlyUserRepository
+	GetUserRepository() repository.SafeUserRepository
 	ValidateCredential(ctx context.Context, username string, plainPassword string) error
-	Create(ctx context.Context, user *model.User, plainPassword string) error
+	Create(ctx context.Context, user *datamodel.User, plainPassword string) error
 }
 
 func NewUserService(userRepository repository.UserRepository,
@@ -30,7 +30,7 @@ type userService struct {
 	translatorMiddleware *middleware.TranslatorMiddleware
 }
 
-func (us userService) GetUserRepository() repository.ReadOnlyUserRepository {
+func (us userService) GetUserRepository() repository.SafeUserRepository {
 	return us.userRepository
 }
 
@@ -55,7 +55,7 @@ func (us userService) ValidateCredential(ctx context.Context, username string, p
 	return nil
 }
 
-func (us userService) validate(ctx context.Context, user *model.User) error {
+func (us userService) validate(ctx context.Context, user *datamodel.User) error {
 	trans := us.translatorMiddleware.Get(ctx)
 	validationErrs := server_errors.NewValidationError()
 
@@ -74,7 +74,7 @@ func (us userService) validate(ctx context.Context, user *model.User) error {
 	return nil
 }
 
-func (us userService) Create(ctx context.Context, user *model.User, plainPassword string) error {
+func (us userService) Create(ctx context.Context, user *datamodel.User, plainPassword string) error {
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return err
