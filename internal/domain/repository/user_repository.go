@@ -36,7 +36,7 @@ type userRepository struct {
 func (ur userRepository) CountByUsername(ctx context.Context, username string) (int, error) {
 	var count int64
 	users := make([]*datamodel.User, 0)
-	return int(count), ur.dbContext.GetDB(ctx).Find(users, "user_name = ?", username).Count(&count).Error
+	return int(count), ur.dbContext.GetDB(ctx).Find(&users, "username = ?", username).Count(&count).Error
 }
 
 func (ur userRepository) GetById(ctx context.Context, id int) (*datamodel.User, error) {
