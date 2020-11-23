@@ -3,9 +3,8 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/user/internal/domain/datamodel"
+	"github.com/VulpesFerrilata/user/internal/domain/model"
 	"github.com/VulpesFerrilata/user/internal/domain/repository"
-	"golang.org/x/crypto/bcrypt"
 
 	server_errors "github.com/VulpesFerrilata/library/pkg/errors"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
@@ -13,8 +12,8 @@ import (
 
 type UserService interface {
 	GetUserRepository() repository.SafeUserRepository
-	ValidateCredential(ctx context.Context, username string, plainPassword string) error
-	Create(ctx context.Context, user *datamodel.User, plainPassword string) error
+	ValidateCredential(ctx context.Context, user *model.User) error
+	Create(ctx context.Context, user *model.User) error
 }
 
 func NewUserService(userRepository repository.UserRepository,
@@ -34,16 +33,17 @@ func (us userService) GetUserRepository() repository.SafeUserRepository {
 	return us.userRepository
 }
 
-func (us userService) ValidateCredential(ctx context.Context, username string, plainPassword string) error {
+func (us userService) ValidateCredential(ctx context.Context, user *model.User) error {
 	trans := us.translatorMiddleware.Get(ctx)
 	validationErrs := server_errors.NewValidationError()
 
-	user, err := us.userRepository.GetByUsername(ctx, username)
+	userDB, err := us.userRepository.GetByUsername(ctx, user.Username)
 	if err != nil {
 		return err
 	}
+	user.User = userDB.User
 
-	if err := bcrypt.CompareHashAndPassword(user.HashPassword, []byte(plainPassword)); err != nil {
+	if err := user.ValidatePassword(); err != nil {
 		fieldErr, _ := trans.T("validation-invalid", "password")
 		validationErrs.WithFieldError(fieldErr)
 	}
@@ -55,7 +55,7 @@ func (us userService) ValidateCredential(ctx context.Context, username string, p
 	return nil
 }
 
-func (us userService) validate(ctx context.Context, user *datamodel.User) error {
+func (us userService) validate(ctx context.Context, user *model.User) error {
 	trans := us.translatorMiddleware.Get(ctx)
 	validationErrs := server_errors.NewValidationError()
 
@@ -74,15 +74,14 @@ func (us userService) validate(ctx context.Context, user *datamodel.User) error 
 	return nil
 }
 
-func (us userService) Create(ctx context.Context, user *datamodel.User, plainPassword string) error {
-	hashPassword, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
-	if err != nil {
+func (us userService) Create(ctx context.Context, user *model.User) error {
+	if err := user.EncryptPassword(); err != nil {
 		return err
 	}
-	user.HashPassword = hashPassword
 
 	if err := us.validate(ctx, user); err != nil {
 		return err
 	}
+
 	return us.userRepository.Insert(ctx, user)
 }

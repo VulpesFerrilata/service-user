@@ -46,11 +46,12 @@ func (ui userInteractor) GetUserByCredential(ctx context.Context, credentialRequ
 		return nil, err
 	}
 
-	if err := ui.userService.ValidateCredential(ctx, credentialRequest.Username, credentialRequest.Password); err != nil {
+	user := credentialRequest.ToUser()
+	if err := ui.userService.ValidateCredential(ctx, user); err != nil {
 		return nil, err
 	}
 
-	user, err := ui.userService.GetUserRepository().GetByUsername(ctx, credentialRequest.Username)
+	user, err := ui.userService.GetUserRepository().GetByUsername(ctx, user.Username)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +65,7 @@ func (ui userInteractor) Register(ctx context.Context, registerRequest *request.
 	}
 
 	user := registerRequest.ToUser()
-	if err := ui.userService.Create(ctx, user, registerRequest.Password); err != nil {
+	if err := ui.userService.Create(ctx, user); err != nil {
 		return nil, err
 	}
 
