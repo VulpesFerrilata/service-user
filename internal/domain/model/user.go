@@ -5,6 +5,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func FromUser(u *datamodel.User) *User {
+	user := new(User)
+	user.User = *u
+	return user
+}
+
 type User struct {
 	datamodel.User
 	Password string
