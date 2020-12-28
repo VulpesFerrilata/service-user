@@ -16,20 +16,20 @@ type Router interface {
 func NewRouter(userController controller.UserController,
 	transactionMiddleware *middleware.TransactionMiddleware,
 	translatorMiddleware *middleware.TranslatorMiddleware,
-	errorMiddleware *middleware.ErrorMiddleware) Router {
+	errorHandlerMiddleware *middleware.ErrorHandlerMiddleware) Router {
 	return &router{
-		userController:        userController,
-		transactionMiddleware: transactionMiddleware,
-		translatorMiddleware:  translatorMiddleware,
-		errorMiddleware:       errorMiddleware,
+		userController:         userController,
+		transactionMiddleware:  transactionMiddleware,
+		translatorMiddleware:   translatorMiddleware,
+		errorHandlerMiddleware: errorHandlerMiddleware,
 	}
 }
 
 type router struct {
-	userController        controller.UserController
-	transactionMiddleware *middleware.TransactionMiddleware
-	translatorMiddleware  *middleware.TranslatorMiddleware
-	errorMiddleware       *middleware.ErrorMiddleware
+	userController         controller.UserController
+	transactionMiddleware  *middleware.TransactionMiddleware
+	translatorMiddleware   *middleware.TranslatorMiddleware
+	errorHandlerMiddleware *middleware.ErrorHandlerMiddleware
 }
 
 func (r router) InitRoutes(app *iris.Application) {
@@ -39,6 +39,6 @@ func (r router) InitRoutes(app *iris.Application) {
 		r.translatorMiddleware.Serve,
 	)
 	mvcApp := mvc.New(apiRoot.Party("/user"))
-	mvcApp.HandleError(r.errorMiddleware.ErrorHandler)
+	mvcApp.HandleError(r.errorHandlerMiddleware.ErrorHandler)
 	mvcApp.Handle(r.userController)
 }

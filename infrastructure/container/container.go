@@ -3,7 +3,6 @@ package container
 import (
 	"github.com/VulpesFerrilata/library/config"
 	"github.com/VulpesFerrilata/library/pkg/database"
-	"github.com/VulpesFerrilata/library/pkg/db"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
 	"github.com/VulpesFerrilata/library/pkg/translator"
 	"github.com/VulpesFerrilata/library/pkg/validator"
@@ -32,14 +31,13 @@ func NewContainer() *dig.Container {
 
 	//--Utility
 	container.Provide(database.NewGorm)
-	container.Provide(db.NewDbContext)
 	container.Provide(translator.NewTranslator)
 	container.Provide(validator.NewValidate)
 
 	//--Middleware
 	container.Provide(middleware.NewTransactionMiddleware)
 	container.Provide(middleware.NewTranslatorMiddleware)
-	container.Provide(middleware.NewErrorMiddleware)
+	container.Provide(middleware.NewErrorHandlerMiddleware)
 
 	//--Controller
 	container.Provide(controller.NewUserController)

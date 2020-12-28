@@ -5,6 +5,7 @@ import (
 	"github.com/VulpesFerrilata/user/internal/usecase/request"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/pkg/errors"
 )
 
 type UserController interface {
@@ -25,7 +26,7 @@ func (uc userController) PostRegister(ctx iris.Context) interface{} {
 	registerRequest := new(request.RegisterRequest)
 
 	if err := ctx.ReadJSON(registerRequest); err != nil {
-		return err
+		return errors.Wrap(err, "controller.UserController.PostRegister")
 	}
 
 	userResponse, err := uc.userInteractor.Register(ctx.Request().Context(), registerRequest)

@@ -6,6 +6,7 @@ import (
 	"github.com/VulpesFerrilata/grpc/protoc/user"
 	"github.com/VulpesFerrilata/user/internal/usecase/interactor"
 	"github.com/VulpesFerrilata/user/internal/usecase/request"
+	"github.com/pkg/errors"
 )
 
 func NewUserHandler(userInteractor interactor.UserInteractor) user.UserHandler {
@@ -24,7 +25,7 @@ func (uh userHandler) GetUserById(ctx context.Context, userRequestPb *user.UserR
 
 	userResponse, err := uh.userInteractor.GetUserById(ctx, userRequest)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "handler.UserHandler.GetUserById")
 	}
 
 	userResponsePb.ID = int64(userResponse.ID)
@@ -39,7 +40,7 @@ func (uh userHandler) GetUserByCredential(ctx context.Context, credentialRequest
 
 	userResponse, err := uh.userInteractor.GetUserByCredential(ctx, credentialRequest)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "handler.UserHandler.GetUserByCredential")
 	}
 
 	userResponsePb.ID = int64(userResponse.ID)

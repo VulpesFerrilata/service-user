@@ -3,94 +3,81 @@ package service
 import (
 	"context"
 
-	"github.com/VulpesFerrilata/library/pkg/validator"
+	"github.com/VulpesFerrilata/library/pkg/app_error"
+	"github.com/VulpesFerrilata/user/internal/business_rule_error"
 	"github.com/VulpesFerrilata/user/internal/domain/model"
 	"github.com/VulpesFerrilata/user/internal/domain/repository"
-
-	server_errors "github.com/VulpesFerrilata/library/pkg/errors"
-	"github.com/VulpesFerrilata/library/pkg/middleware"
+	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	GetUserRepository() repository.SafeUserRepository
-	ValidateCredential(ctx context.Context, user *model.User) error
+	NewUser(ctx context.Context, username string, password string) (*model.User, error)
+	ValidateCredential(ctx context.Context, username string, password string) error
 	Create(ctx context.Context, user *model.User) error
 }
 
-func NewUserService(validate validator.Validate,
-	userRepository repository.UserRepository,
-	translatorMiddleware *middleware.TranslatorMiddleware) UserService {
+func NewUserService(
+	userRepository repository.UserRepository) UserService {
 	return &userService{
-		validate:             validate,
-		userRepository:       userRepository,
-		translatorMiddleware: translatorMiddleware,
+		userRepository: userRepository,
 	}
 }
 
 type userService struct {
-	validate             validator.Validate
-	userRepository       repository.UserRepository
-	translatorMiddleware *middleware.TranslatorMiddleware
+	userRepository repository.UserRepository
 }
 
-func (us *userService) GetUserRepository() repository.SafeUserRepository {
+func (us userService) GetUserRepository() repository.SafeUserRepository {
 	return us.userRepository
 }
 
-func (us *userService) ValidateCredential(ctx context.Context, user *model.User) error {
-	trans := us.translatorMiddleware.Get(ctx)
-
-	validationErrs := server_errors.NewValidationError()
-
-	userDB, err := us.userRepository.GetByUsername(ctx, user.Username)
+func (us userService) isExists(ctx context.Context, username string) (bool, error) {
+	_, err := us.userRepository.GetByUsername(ctx, username)
 	if err != nil {
-		return err
+		if _, ok := errors.Cause(err).(*app_error.NotFoundError); ok {
+			return false, nil
+		}
+		return false, errors.Wrap(err, "service.UserService.isExists")
 	}
-	user.HashPassword = userDB.HashPassword
-
-	if err := user.ValidatePassword(); err != nil {
-		fieldErr, _ := trans.T("validation-invalid", "password")
-		validationErrs.WithFieldError(fieldErr)
-	}
-
-	if validationErrs.HasErrors() {
-		return validationErrs
-	}
-
-	return nil
+	return true, nil
 }
 
-func (us *userService) Validate(ctx context.Context, user *model.User) error {
-	trans := us.translatorMiddleware.Get(ctx)
-
-	if err := us.validate.Struct(ctx, user.User); err != nil {
-		return err
-	}
-
-	validationErrs := server_errors.NewValidationError()
-	count, err := us.userRepository.CountByUsername(ctx, user.Username)
+func (us userService) NewUser(ctx context.Context, username string, password string) (*model.User, error) {
+	isExists, err := us.isExists(ctx, username)
 	if err != nil {
-		return err
+		return nil, errors.Wrap(err, "service.UserService.NewUser")
 	}
-	if count > 0 {
-		fieldErr, _ := trans.T("validation-already-exists", "username")
-		validationErrs.WithFieldError(fieldErr)
+	if isExists {
+		var businessRuleErrors app_error.BusinessRuleErrors
+		userAlreadyExistsError := app_error.NewAlreadyExistsError("user")
+		businessRuleErrors = append(businessRuleErrors, userAlreadyExistsError)
+		return nil, businessRuleErrors
+	}
+	user, err := model.NewUser(username, password)
+	if err != nil {
+		return nil, errors.Wrap(err, "service.NewUser")
+	}
+	return user, nil
+}
+
+func (us *userService) ValidateCredential(ctx context.Context, username string, password string) error {
+	user, err := us.userRepository.GetByUsername(ctx, username)
+	if err != nil {
+		return errors.Wrap(err, "service.UserService.ValidateCredential")
 	}
 
-	if validationErrs.HasErrors() {
-		return validationErrs
+	if err := bcrypt.CompareHashAndPassword(user.GetHashPassword(), []byte(password)); err != nil {
+		var businessRuleErrors app_error.BusinessRuleErrors
+		incorrectPasswordError := business_rule_error.NewIncorrectPasswordError()
+		businessRuleErrors = append(businessRuleErrors, incorrectPasswordError)
+		return businessRuleErrors
 	}
+
 	return nil
 }
 
 func (us *userService) Create(ctx context.Context, user *model.User) error {
-	if err := user.EncryptPassword(); err != nil {
-		return err
-	}
-
-	if err := us.Validate(ctx, user); err != nil {
-		return err
-	}
-
 	return us.userRepository.Insert(ctx, user)
 }

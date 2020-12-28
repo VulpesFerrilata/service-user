@@ -4,8 +4,8 @@ import "github.com/VulpesFerrilata/user/internal/domain/model"
 
 func NewUserResponse(user *model.User) *UserResponse {
 	userResponse := new(UserResponse)
-	userResponse.ID = int(user.ID)
-	userResponse.Username = user.Username
+	userResponse.ID = int(user.GetId())
+	userResponse.Username = user.GetUsername()
 	return userResponse
 }
 
