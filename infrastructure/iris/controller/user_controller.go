@@ -31,7 +31,7 @@ func (uc userController) PostRegister(ctx iris.Context) interface{} {
 
 	userResponse, err := uc.userInteractor.Register(ctx.Request().Context(), registerRequest)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "controller.UserController.PostRegister")
 	}
 
 	return mvc.Response{
