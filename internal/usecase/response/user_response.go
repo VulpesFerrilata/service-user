@@ -1,10 +1,10 @@
 package response
 
-import "github.com/VulpesFerrilata/user/internal/domain/model"
+import "github.com/VulpesFerrilata/user/internal/domain/datamodel"
 
-func NewUserResponse(user *model.User) *UserResponse {
+func NewUserResponse(user *datamodel.User) *UserResponse {
 	userResponse := new(UserResponse)
-	userResponse.ID = int(user.GetId())
+	userResponse.ID = user.GetId()
 	userResponse.Username = user.GetUsername()
 	return userResponse
 }

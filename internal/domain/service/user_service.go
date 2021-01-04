@@ -5,7 +5,7 @@ import (
 
 	"github.com/VulpesFerrilata/library/pkg/app_error"
 	"github.com/VulpesFerrilata/user/internal/business_rule_error"
-	"github.com/VulpesFerrilata/user/internal/domain/model"
+	"github.com/VulpesFerrilata/user/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/user/internal/domain/repository"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
@@ -13,9 +13,9 @@ import (
 
 type UserService interface {
 	GetUserRepository() repository.SafeUserRepository
-	NewUser(ctx context.Context, username string, password string) (*model.User, error)
+	NewUser(ctx context.Context, username string, password string) (*datamodel.User, error)
 	ValidateCredential(ctx context.Context, username string, password string) error
-	Create(ctx context.Context, user *model.User) error
+	Create(ctx context.Context, user *datamodel.User) error
 }
 
 func NewUserService(
@@ -44,22 +44,16 @@ func (us userService) isExists(ctx context.Context, username string) (bool, erro
 	return true, nil
 }
 
-func (us userService) NewUser(ctx context.Context, username string, password string) (*model.User, error) {
+func (us userService) NewUser(ctx context.Context, username string, password string) (*datamodel.User, error) {
 	isExists, err := us.isExists(ctx, username)
 	if err != nil {
 		return nil, errors.Wrap(err, "service.UserService.NewUser")
 	}
 	if isExists {
-		var businessRuleErrors app_error.BusinessRuleErrors
-		userAlreadyExistsError := app_error.NewAlreadyExistsError("user")
-		businessRuleErrors = append(businessRuleErrors, userAlreadyExistsError)
-		return nil, businessRuleErrors
+		return nil, app_error.NewAlreadyExistsError("username")
 	}
-	user, err := model.NewUser(username, password)
-	if err != nil {
-		return nil, errors.Wrap(err, "service.NewUser")
-	}
-	return user, nil
+	user, err := datamodel.NewUser(username, password)
+	return user, errors.Wrap(err, "service.NewUser")
 }
 
 func (us *userService) ValidateCredential(ctx context.Context, username string, password string) error {
@@ -78,6 +72,6 @@ func (us *userService) ValidateCredential(ctx context.Context, username string, 
 	return nil
 }
 
-func (us *userService) Create(ctx context.Context, user *model.User) error {
+func (us *userService) Create(ctx context.Context, user *datamodel.User) error {
 	return us.userRepository.Insert(ctx, user)
 }

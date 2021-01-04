@@ -1,9 +1,60 @@
 package datamodel
 
-import "gorm.io/gorm"
+import (
+	"github.com/VulpesFerrilata/user/internal/domain/model"
+	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
+)
+
+func NewUser(username string, password string) (*User, error) {
+	user := new(User)
+	user.username = username
+
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, errors.Wrap(err, "model.NewUser")
+	}
+	user.hashPassword = hashPassword
+
+	return user, nil
+}
+
+func NewUserFromUserModel(userModel *model.User) *User {
+	user := new(User)
+	user.id = userModel.ID
+	user.username = userModel.Username
+	user.hashPassword = userModel.HashPassword
+	return user
+}
 
 type User struct {
-	gorm.Model
-	Username     string `gorm:"type:varchar(20);uniqueIndex" validate:"required"`
-	HashPassword []byte `validate:"required"`
+	id           int
+	username     string
+	hashPassword []byte
+}
+
+func (u User) GetId() int {
+	return u.id
+}
+
+func (u User) GetUsername() string {
+	return u.username
+}
+
+func (u User) GetHashPassword() []byte {
+	return u.hashPassword
+}
+
+func (u *User) Persist(f func(userModel *model.User) error) error {
+	userModel := new(model.User)
+	userModel.ID = u.id
+	userModel.Username = u.username
+	userModel.HashPassword = u.hashPassword
+	if err := f(userModel); err != nil {
+		return errors.Wrap(err, "datamodel.User.Persist")
+	}
+	u.id = userModel.ID
+	u.username = userModel.Username
+	u.hashPassword = userModel.HashPassword
+	return nil
 }

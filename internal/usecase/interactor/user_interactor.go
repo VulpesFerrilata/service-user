@@ -33,7 +33,7 @@ type userInteractor struct {
 func (ui userInteractor) GetUserById(ctx context.Context, userRequest *request.UserRequest) (*response.UserResponse, error) {
 	if err := ui.validate.StructCtx(ctx, userRequest); err != nil {
 		if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-			err = app_error.NewValidationError(app_error.InputValidation, "user", fieldErrors)
+			err = app_error.NewInputValidationError(userRequest, fieldErrors)
 		}
 		return nil, errors.Wrap(err, "interactor.UserInteractor.GetUserById")
 	}
@@ -49,7 +49,7 @@ func (ui userInteractor) GetUserById(ctx context.Context, userRequest *request.U
 func (ui userInteractor) GetUserByCredential(ctx context.Context, credentialRequest *request.CredentialRequest) (*response.UserResponse, error) {
 	if err := ui.validate.StructCtx(ctx, credentialRequest); err != nil {
 		if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-			err = app_error.NewValidationError(app_error.InputValidation, "credential", fieldErrors)
+			err = app_error.NewInputValidationError(credentialRequest, fieldErrors)
 		}
 		return nil, errors.Wrap(err, "interactor.UserInteractor.GetUserByCredential")
 	}
@@ -69,7 +69,7 @@ func (ui userInteractor) GetUserByCredential(ctx context.Context, credentialRequ
 func (ui userInteractor) Register(ctx context.Context, registerRequest *request.RegisterRequest) (*response.UserResponse, error) {
 	if err := ui.validate.StructCtx(ctx, registerRequest); err != nil {
 		if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-			err = app_error.NewValidationError(app_error.InputValidation, "register", fieldErrors)
+			err = app_error.NewInputValidationError(registerRequest, fieldErrors)
 		}
 		return nil, errors.Wrap(err, "interactor.UserInteractor.Register")
 	}
