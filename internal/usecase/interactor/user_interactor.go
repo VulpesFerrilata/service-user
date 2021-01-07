@@ -33,7 +33,7 @@ type userInteractor struct {
 func (ui userInteractor) GetUserById(ctx context.Context, userRequest *request.UserRequest) (*response.UserResponse, error) {
 	if err := ui.validate.StructCtx(ctx, userRequest); err != nil {
 		if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-			err = app_error.NewInputValidationError(userRequest, fieldErrors)
+			err = app_error.NewValidationError(fieldErrors)
 		}
 		return nil, errors.Wrap(err, "interactor.UserInteractor.GetUserById")
 	}
@@ -49,7 +49,7 @@ func (ui userInteractor) GetUserById(ctx context.Context, userRequest *request.U
 func (ui userInteractor) GetUserByCredential(ctx context.Context, credentialRequest *request.CredentialRequest) (*response.UserResponse, error) {
 	if err := ui.validate.StructCtx(ctx, credentialRequest); err != nil {
 		if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-			err = app_error.NewInputValidationError(credentialRequest, fieldErrors)
+			err = app_error.NewValidationError(fieldErrors)
 		}
 		return nil, errors.Wrap(err, "interactor.UserInteractor.GetUserByCredential")
 	}
@@ -69,7 +69,7 @@ func (ui userInteractor) GetUserByCredential(ctx context.Context, credentialRequ
 func (ui userInteractor) Register(ctx context.Context, registerRequest *request.RegisterRequest) (*response.UserResponse, error) {
 	if err := ui.validate.StructCtx(ctx, registerRequest); err != nil {
 		if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-			err = app_error.NewInputValidationError(registerRequest, fieldErrors)
+			err = app_error.NewValidationError(fieldErrors)
 		}
 		return nil, errors.Wrap(err, "interactor.UserInteractor.Register")
 	}
@@ -79,7 +79,7 @@ func (ui userInteractor) Register(ctx context.Context, registerRequest *request.
 		return nil, errors.Wrap(err, "interactor.UserInteractor.Register")
 	}
 
-	if err := ui.userService.Create(ctx, user); err != nil {
+	if err := ui.userService.GetUserRepository().Insert(ctx, user); err != nil {
 		return nil, errors.Wrap(err, "interactor.UserInteractor.Register")
 	}
 

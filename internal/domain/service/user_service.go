@@ -12,10 +12,9 @@ import (
 )
 
 type UserService interface {
-	GetUserRepository() repository.SafeUserRepository
+	GetUserRepository() repository.UserRepository
 	NewUser(ctx context.Context, username string, password string) (*datamodel.User, error)
 	ValidateCredential(ctx context.Context, username string, password string) error
-	Create(ctx context.Context, user *datamodel.User) error
 }
 
 func NewUserService(
@@ -29,7 +28,7 @@ type userService struct {
 	userRepository repository.UserRepository
 }
 
-func (us userService) GetUserRepository() repository.SafeUserRepository {
+func (us userService) GetUserRepository() repository.UserRepository {
 	return us.userRepository
 }
 
@@ -70,8 +69,4 @@ func (us *userService) ValidateCredential(ctx context.Context, username string, 
 	}
 
 	return nil
-}
-
-func (us *userService) Create(ctx context.Context, user *datamodel.User) error {
-	return us.userRepository.Insert(ctx, user)
 }

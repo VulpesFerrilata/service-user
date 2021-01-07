@@ -3,8 +3,8 @@ module github.com/VulpesFerrilata/user
 go 1.14
 
 require (
-	github.com/VulpesFerrilata/grpc v0.0.0-20210104100554-e35ac2bc17dd
-	github.com/VulpesFerrilata/library v0.0.0-20210104100350-c1a4a867d38c
+	github.com/VulpesFerrilata/grpc v0.0.0-20210107070918-9c2ee4b9d0af
+	github.com/VulpesFerrilata/library v0.0.0-20210107104520-1e00cecc8cd0
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/micro/go-micro/v2 v2.9.1

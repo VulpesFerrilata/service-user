@@ -58,14 +58,10 @@ func (ur userRepository) GetByUsername(ctx context.Context, username string) (*d
 func (ur userRepository) Insert(ctx context.Context, user *datamodel.User) error {
 	return user.Persist(func(userModel *model.User) error {
 		if err := ur.validate.StructCtx(ctx, userModel); err != nil {
-			if fieldErrors, ok := errors.Cause(err).(validator.ValidationErrors); ok {
-				err = app_error.NewEntityValidationError(userModel, fieldErrors)
-			}
 			return errors.Wrap(err, "repository.UserRepository.Insert")
 		}
 
 		err := ur.transactionMiddleware.Get(ctx).Create(userModel).Error
 		return errors.Wrap(err, "repository.UserRepository.Insert")
 	})
-
 }
