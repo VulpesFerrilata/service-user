@@ -3,9 +3,9 @@ package main
 import (
 	"database/sql"
 
+	"github.com/VulpesFerrilata/go-micro-custom/server/grpc"
 	log "github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/server"
-	"github.com/micro/go-micro/v2/server/grpc"
 
 	"github.com/VulpesFerrilata/grpc/protoc/user"
 	"github.com/VulpesFerrilata/library/pkg/middleware"
