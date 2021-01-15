@@ -2,6 +2,7 @@ package datamodel
 
 import (
 	"github.com/VulpesFerrilata/user/internal/domain/model"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -9,6 +10,12 @@ import (
 func NewUser(username string, password string) (*User, error) {
 	user := new(User)
 	user.username = username
+
+	id, err := uuid.NewRandom()
+	if err != nil {
+		return nil, errors.Wrap(err, "model.NewUser")
+	}
+	user.id = id
 
 	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -24,16 +31,20 @@ func NewUserFromUserModel(userModel *model.User) *User {
 	user.id = userModel.ID
 	user.username = userModel.Username
 	user.hashPassword = userModel.HashPassword
+	user.displayName = userModel.DisplayName
+	user.email = userModel.Email
 	return user
 }
 
 type User struct {
-	id           int
+	id           uuid.UUID
 	username     string
 	hashPassword []byte
+	displayName  string
+	email        string
 }
 
-func (u User) GetId() int {
+func (u User) GetId() uuid.UUID {
 	return u.id
 }
 
@@ -45,16 +56,20 @@ func (u User) GetHashPassword() []byte {
 	return u.hashPassword
 }
 
-func (u *User) Persist(f func(userModel *model.User) error) error {
+func (u User) GetDisplayName() string {
+	return u.displayName
+}
+
+func (u User) GetEmail() string {
+	return u.email
+}
+
+func (u User) ToModel() *model.User {
 	userModel := new(model.User)
 	userModel.ID = u.id
 	userModel.Username = u.username
 	userModel.HashPassword = u.hashPassword
-	if err := f(userModel); err != nil {
-		return errors.Wrap(err, "datamodel.User.Persist")
-	}
-	u.id = userModel.ID
-	u.username = userModel.Username
-	u.hashPassword = userModel.HashPassword
-	return nil
+	userModel.DisplayName = u.displayName
+	userModel.Email = u.email
+	return userModel
 }

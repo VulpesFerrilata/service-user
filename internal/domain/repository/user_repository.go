@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 
@@ -15,7 +16,7 @@ import (
 )
 
 type SafeUserRepository interface {
-	GetById(ctx context.Context, id int) (*datamodel.User, error)
+	GetById(ctx context.Context, id uuid.UUID) (*datamodel.User, error)
 	GetByUsername(ctx context.Context, username string) (*datamodel.User, error)
 }
 
@@ -37,7 +38,7 @@ type userRepository struct {
 	validate              *validator.Validate
 }
 
-func (ur userRepository) GetById(ctx context.Context, id int) (*datamodel.User, error) {
+func (ur userRepository) GetById(ctx context.Context, id uuid.UUID) (*datamodel.User, error) {
 	userModel := new(model.User)
 	err := ur.transactionMiddleware.Get(ctx).First(userModel, id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -56,12 +57,12 @@ func (ur userRepository) GetByUsername(ctx context.Context, username string) (*d
 }
 
 func (ur userRepository) Insert(ctx context.Context, user *datamodel.User) error {
-	return user.Persist(func(userModel *model.User) error {
-		if err := ur.validate.StructCtx(ctx, userModel); err != nil {
-			return errors.Wrap(err, "repository.UserRepository.Insert")
-		}
+	userModel := user.ToModel()
 
-		err := ur.transactionMiddleware.Get(ctx).Create(userModel).Error
+	if err := ur.validate.StructCtx(ctx, userModel); err != nil {
 		return errors.Wrap(err, "repository.UserRepository.Insert")
-	})
+	}
+
+	err := ur.transactionMiddleware.Get(ctx).Create(userModel).Error
+	return errors.Wrap(err, "repository.UserRepository.Insert")
 }

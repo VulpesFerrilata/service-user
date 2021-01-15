@@ -21,14 +21,17 @@ type userHandler struct {
 
 func (uh userHandler) GetUserById(ctx context.Context, userRequestPb *user.UserRequest, userResponsePb *user.UserResponse) error {
 	userRequest := new(request.UserRequest)
-	userRequest.ID = int(userRequestPb.GetID())
+	userRequest.ID = userRequestPb.GetID()
 
 	userResponse, err := uh.userInteractor.GetUserById(ctx, userRequest)
 	if err != nil {
 		return errors.Wrap(err, "handler.UserHandler.GetUserById")
 	}
 
-	userResponsePb.ID = int64(userResponse.ID)
+	userResponsePb.ID = userResponse.ID
+	userResponsePb.Username = userResponse.Username
+	userResponsePb.DisplayName = userResponse.DisplayName
+	userResponsePb.Email = userResponse.Email
 
 	return nil
 }
@@ -43,7 +46,7 @@ func (uh userHandler) GetUserByCredential(ctx context.Context, credentialRequest
 		return errors.Wrap(err, "handler.UserHandler.GetUserByCredential")
 	}
 
-	userResponsePb.ID = int64(userResponse.ID)
+	userResponsePb.ID = userResponse.ID
 
 	return nil
 }

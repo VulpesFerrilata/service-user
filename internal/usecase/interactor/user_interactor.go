@@ -7,6 +7,7 @@ import (
 	"github.com/VulpesFerrilata/user/internal/domain/service"
 	"github.com/VulpesFerrilata/user/internal/usecase/request"
 	"github.com/VulpesFerrilata/user/internal/usecase/response"
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -37,8 +38,12 @@ func (ui userInteractor) GetUserById(ctx context.Context, userRequest *request.U
 		}
 		return nil, errors.Wrap(err, "interactor.UserInteractor.GetUserById")
 	}
+	userId, err := uuid.Parse(userRequest.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "interactor.UserInteractor.GetUserById")
+	}
 
-	user, err := ui.userService.GetUserRepository().GetById(ctx, userRequest.ID)
+	user, err := ui.userService.GetUserRepository().GetById(ctx, userId)
 	if err != nil {
 		return nil, errors.Wrap(err, "interactor.UserInteractor.GetUserById")
 	}
