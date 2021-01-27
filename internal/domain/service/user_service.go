@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"github.com/VulpesFerrilata/library/pkg/app_error"
-	"github.com/VulpesFerrilata/user/internal/business_rule_error"
 	"github.com/VulpesFerrilata/user/internal/domain/datamodel"
 	"github.com/VulpesFerrilata/user/internal/domain/repository"
+	"github.com/VulpesFerrilata/user/internal/pkg/app_error/business_rule_error"
 	"github.com/pkg/errors"
 	"golang.org/x/crypto/bcrypt"
 )
